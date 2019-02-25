@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig",
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exclude": []
+}
