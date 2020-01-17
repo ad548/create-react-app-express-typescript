@@ -2,11 +2,20 @@ import React, { Component } from "react";
 import "./App.css";
 import logo from "./logo.svg";
 
-class App extends Component {
+interface IAppProps {}
+interface IAppState {
+  post: string,
+  response: string,
+  responseToPost: string,
+  formIsDirty: boolean
+} 
+
+class App extends Component<IAppProps, IAppProps> {
   public state = {
     post: "",
     response: "",
-    responseToPost: ""
+    responseToPost: "",
+    formIsDirty: false
   };
   public componentDidMount() {
     this.callApi()
@@ -22,8 +31,17 @@ class App extends Component {
     }
     return body;
   };
-  public handleSubmit = async (e: any) => {
-    e.preventDefault();
+
+    // Prevents the form from being POST back... but keeps the HTML5 validations
+  private NoPostBack = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+  }
+  
+  public handleSubmit = async (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
+    // THIS VALIDATION ALLOWS THE POPUP TO STILL SHOW UP
+    if(this.state.formIsDirty === false || this.state.post === "")
+      return
+
     const response = await fetch("/api/messages", {
       body: JSON.stringify({ post: this.state.post }),
       headers: {
@@ -32,8 +50,14 @@ class App extends Component {
       method: "POST"
     });
     const body = await response.text();
-    this.setState({ responseToPost: body });
-  };
+    this.setState({ responseToPost: body, formIsDirty: false });
+  }
+  private changeInputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      post: e.target.value,
+      formIsDirty: true
+    })
+  }
   public render() {
     return (
       <div className="App">
@@ -52,17 +76,18 @@ class App extends Component {
           </a>
         </header>
         <p>{this.state.response}</p>
-        <form onSubmit={this.handleSubmit}>
+        <form onSubmit={this.NoPostBack}>
           <p>
             <strong>Post to Server:</strong>
           </p>
           <input
             type="text"
             value={this.state.post}
+            required={true}
             // tslint:disable-next-line jsx-no-lambda
-            onChange={e => this.setState({ post: e.target.value })}
+            onChange={this.changeInputHandler}
           />
-          <button type="submit">Submit</button>
+          <input onClick={this.handleSubmit} type="submit"/>
         </form>
         <p>{this.state.responseToPost}</p>
       </div>
